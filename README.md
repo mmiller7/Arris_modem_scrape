@@ -9,3 +9,7 @@ Password: (the last 8 digits of your modem's serial number)
 This script should allow you to scrape the modem status data and write it out to a MQTT broker where you can then use something like HomeAssistant to take actions based on the data (graph it, issue automations to cycle a smartplug, etc)
 
 If you want to use this on an older firmware that does not have authenticatiton, you can PROBABLY just comment out the part where it gets a token and just have it fetch $result directly, but since my modem now needs a password I obviously can't test that anymore.
+
+
+arris_modem_signgal.yaml - initial YAML to run the script periodically and import the startup status
+sensor_gen.sh - allows you to quickly bulk-generate the YAML for sensors to import results for lots of channels (my modem has 33 downstream and 4 upstream).
