@@ -10,6 +10,12 @@ mqtt_username="your_mqtt_username_here"
 mqtt_password="your_mqtt_password_here"
 mqtt_topic="homeassistant/sensor/modemsignals"
 
+# HomeAssistant doesn't expose this to the container so we have to hack it up
+# Comment these out for a "normal" host that knows where mosquitto_pub is on its own
+export LD_LIBRARY_PATH='/config/bin/mosquitto_deps/lib'
+mqtt_pub_exe="/config/bin/mosquitto_deps/mosquitto_pub"
+# Uncomment tthis for a "normal" host that knows where mosquitto_pub is on its own
+#mqtt_pub_exe="mosquitto_pub"
 
 
 
@@ -22,7 +28,7 @@ function loginStatus () {
 	#echo "Modem login: $1"
 	# Publish MQTT to announce status
 	message="{ \"login\": $1 }"
-	mosquitto_pub -h "$mqtt_broker" -u "$mqtt_username" -P "$mqtt_password" -t "${mqtt_topic}/login" -m "$message" || echo "MQTT-Pub Error!"
+	$mqtt_pub_exe -h "$mqtt_broker" -u "$mqtt_username" -P "$mqtt_password" -t "${mqtt_topic}/login" -m "$message" || echo "MQTT-Pub Error!"
 }
 
 # This function gets a dynamic session-token (cookie?) from the modem
@@ -34,24 +40,26 @@ else
 	# We base-64 encode the user/mqtt_password to get a token from the modem
 	# Note: must not have any newlines
 	auth_hash=`echo -n "${modem_username}:${modem_password}" | base64`
-	echo "The auth_hash is [${auth_hash}]"
+	#echo "The auth_hash is [${auth_hash}]"
 
 	# Now we need to ask the modem for a token
 	# the --insecure because it is self-signed cert
 	#token=$(curl -s --insecure "https://192.168.100.1/cmconnectionstatus.html?${auth_hash}")
-	token=$(curl -s --insecure "https://192.168.100.1/cmconnectionstatus.html?${auth_hash}" -H 'Accept: */*' -H 'Content-Type: application/x-www-form-urlencoded; charset=utf-8' -H "Authorization: Basic ${auth_hash}" -H 'X-Requested-With: XMLHttpRequest' -H 'Cookie: HttpOnly: true, Secure: true')
+	token=$(curl --connect-timeout 5 -s --insecure "https://192.168.100.1/cmconnectionstatus.html?${auth_hash}" -H 'Accept: */*' -H 'Content-Type: application/x-www-form-urlencoded; charset=utf-8' -H "Authorization: Basic ${auth_hash}" -H 'X-Requested-With: XMLHttpRequest' -H 'Cookie: HttpOnly: true, Secure: true')
 
+	if [ "$?" == 28 ]; then 
+		loginStatus "failed_timeout_no_token"
+		exit 11
 	# Check if the totken looks valid or is a login form rejected
-	if echo "$token" | grep --quiet '<title>Login</title>'; then
+	elif echo "$token" | grep -q '<title>Login</title>'; then
 		# At this point, if we weren't successful, we give up - probably locked out or wrong auth_hash
 		loginStatus "failed_rejected_no_token"
-		exit 1
+		exit 12
 	else
 		loginStatus "token_received"
 	fi
 
-
-	echo "The token is [${token}]"
+	#echo "The token is [${token}]"
 
 	# Save the token to reuse for later requests
 	echo -n "$token" > "$0.token"
@@ -84,7 +92,7 @@ getToken;
 getResult;
 
 # See if we were successful
-if echo "$result" | grep --quiet '<title>Login</title>'; then
+if echo "$result" | grep -q '<title>Login</title>'; then
 	loginStatus "failed_retrying"
 
 	# If we failed (got a login prompt) try once more for new token
@@ -94,10 +102,10 @@ if echo "$result" | grep --quiet '<title>Login</title>'; then
 fi
 
 # See if we were successful
-if echo "$result" | grep --quiet '<title>Login</title>'; then
+if echo "$result" | grep -q '<title>Login</title>'; then
 	# At this point, if we weren't successful, we give up
 	loginStatus "failed"
-	exit 2
+	exit 21
 else
 	loginStatus "success"
 fi
@@ -112,9 +120,9 @@ fi
 #echo -e "$result"
 
 #echo "$result" | tr '\n' ' ' | sed 's/\t//g;s/ //g;s/dBmV//g;s/dB//g' | awk -F "<tableclass=['\"]simpleTable['\"]>|</table>" '{print "\nStartup:\n" $2 "\n\nDown\n" $4 "\n\nUp\n" $6 "\n" }'
-startup_status=$(echo "$result" | tr '\n' ' ' | sed 's/\t//g;s/ //g;s/dBmV//g;s/dB//g;s/<[/]\?strong>//g;s/<![^>]*>//g;s/<[/]\?[bui]>//g' | awk -F "<tableclass=['\"]simpleTable['\"]>|</table>" '{print $2}')
-downstream_status=$(echo "$result" | tr '\n' ' ' | sed 's/\t//g;s/ //g;s/dBmV//g;s/dB//g;s/<[/]\?strong>//g;s/<![^>]*>//g' | awk -F "<tableclass=['\"]simpleTable['\"]>|</table>" '{print $4}')
-upstream_status=$(echo "$result" | tr '\n' ' ' | sed 's/\t//g;s/ //g;s/dBmV//g;s/dB//g;s/<[/]\?strong>//g;s/<![^>]*>//g' | awk -F "<tableclass=['\"]simpleTable['\"]>|</table>" '{print $6}')
+startup_status=$(echo "$result" | tr '\n' ' ' | sed 's/\t//g;s/ //g;s/dBmV//g;s/dB//g;s/Hz//g;s/<[/]\?strong>//g;s/<![^>]*>//g;s/<[/]\?[bui]>//g' | awk -F "<tableclass=['\"]simpleTable['\"]>|</table>" '{print $2}')
+downstream_status=$(echo "$result" | tr '\n' ' ' | sed 's/\t//g;s/ //g;s/dBmV//g;s/dB//g;s/Hz//g;s/<[/]\?strong>//g;s/<![^>]*>//g' | awk -F "<tableclass=['\"]simpleTable['\"]>|</table>" '{print $4}')
+upstream_status=$(echo "$result" | tr '\n' ' ' | sed 's/\t//g;s/ //g;s/dBmV//g;s/dB//g;s/Hz//g;s/<[/]\?strong>//g;s/<![^>]*>//g' | awk -F "<tableclass=['\"]simpleTable['\"]>|</table>" '{print $6}')
 
 # Break out by line
 startup_rows=$(echo "$startup_status" | sed 's/^<tr>//g;s/<\/tr>$//g;s/<\/tr><tr[^>]*>/\n/g')
@@ -137,7 +145,11 @@ function pubStartupStatusValue () {
 	message=""
 	# If exists, insert stattus
 	if [ "$procedure_status" != "" ]; then
-		message="${message} \"status\":$procedure_status"
+		if [[ "$procedure_status" =~ ^[0-9]+$ ]]; then
+			message="${message} \"status\": $procedure_status"
+		else
+			message="${message} \"status\": \"$procedure_status\""
+		fi
 	fi
 	# If exists, insert comment
 	if [ "$procedure_comment" != "" ]; then
@@ -145,10 +157,10 @@ function pubStartupStatusValue () {
 		if [ "$message" != "" ]; then
 			message="${message}, "
 		fi
-		message="${message} \"comment\":$procedure_comment"
+		message="${message} \"comment\": \"$procedure_comment\""
 	fi
 	message="{ ${message} }"
-	mosquitto_pub -h "$mqtt_broker" -u "$mqtt_username" -P "$mqtt_password" -t "${mqtt_topic}/startup_procedure/${procedure_name}" -m "$message"
+	$mqtt_pub_exe -h "$mqtt_broker" -u "$mqtt_username" -P "$mqtt_password" -t "${mqtt_topic}/startup_procedure/${procedure_name}" -m "$message"
 }
 echo "$startup_rows" | grep -v "^$" | tail -n +3 | while read -r line; do
 	to_parse=$(echo "$line" | sed 's/<th[^>]*>[^<]*<\/th>//g;s/^<td[^>]*>//g;s/<\/td>$//g;s/<\/td><td[^>]*>/\t/g')
@@ -169,17 +181,17 @@ echo "$downstream_rows" | tail -n +2 | while read -r line; do
 	to_parse=$(echo "$line" | sed 's/<th[^>]*>[^<]*<\/th><\/tr>//g;s/^<td>//g;s/<\/td>$//g;s/<\/td><td[^>]*>/\t/g')
 	message=$(
 		echo "{"
-		echo "$to_parse" | awk '{ print "\"ChannelID\":"$1","
-															print "\"LockStatus\":"$2","
-															print "\"Modulation\":"$3","
-															print "\"Frequency\":"$4","
-															print "\"Power\":"$5","
-															print "\"SNR_MER\":"$6","
-															print "\"Corrected\":"$7","
-															print "\"Uncorrectable\":"$8 }'
+		echo "$to_parse" | awk '{ print "\"ChannelID\": "$1","
+															print "\"LockStatus\": \""$2"\","
+															print "\"Modulation\": \""$3"\","
+															print "\"Frequency\": "$4","
+															print "\"Power\": "$5","
+															print "\"SNR_MER\" :"$6","
+															print "\"Corrected\" :"$7","
+															print "\"Uncorrectable\" :"$8 }'
 		echo "}"
 	)
-	mosquitto_pub -h "$mqtt_broker" -u "$mqtt_username" -P "$mqtt_password" -t "${mqtt_topic}/downstream/${counter}" -m "$message"
+	$mqtt_pub_exe -h "$mqtt_broker" -u "$mqtt_username" -P "$mqtt_password" -t "${mqtt_topic}/downstream/${counter}" -m "$message"
 done
 
 # Parse out the upstream HTML table into JSON and publish
@@ -191,16 +203,16 @@ echo "$upstream_rows" | tail -n +2 | while read -r line; do
 	to_parse=$(echo "$line" | sed 's/<th[^>]*>[^<]*<\/th><\/tr>//g;s/^<td>//g;s/<\/td>$//g;s/<\/td><td[^>]*>/\t/g')
 	message=$(
 		echo "{"
-		echo "$to_parse" | awk '{ print "\"Channel\":"$1","
-															print "\"ChannelID\":"$2","
-															print "\"LockStatus\":"$3","
-															print "\"USChannelType\":"$4","
-															print "\"Frequency\":"$5","
-															print "\"Width\":"$6","
-															print "\"Power\":"$7 }'
+		echo "$to_parse" | awk '{ print "\"Channel\": "$1","
+															print "\"ChannelID\": "$2","
+															print "\"LockStatus\": \""$3"\","
+															print "\"USChannelType\": \""$4"\","
+															print "\"Frequency\": "$5","
+															print "\"Width\": "$6","
+															print "\"Power\": "$7 }'
 		echo "}"
 	)
-	mosquitto_pub -h "$mqtt_broker" -u "$mqtt_username" -P "$mqtt_password" -t "${mqtt_topic}/upstream/${counter}" -m "$message"
+	$mqtt_pub_exe -h "$mqtt_broker" -u "$mqtt_username" -P "$mqtt_password" -t "${mqtt_topic}/upstream/${counter}" -m "$message"
 done
 
 #echo ""
