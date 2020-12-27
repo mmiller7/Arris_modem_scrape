@@ -1,0 +1,49 @@
+
+# Call script which publishes readings to MQTT
+shell_command:
+  arris_modem_signal_run_scrape: '/config/arris_modem_signal_scraper/arris_signal_dump.sh'
+
+automation:
+  # Run the test on startup, and hourly
+  - alias: 'Arris Modem Signal Scrape'
+    trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: '/10'
+# Optional if you have a sensor to make sure the modem is actually up before running
+#    codition:
+#      - condition: state
+#        entity_id: binary_sensor.http_cable_modem
+#        state: 'on'
+#        for: '00:00:10'
+    action:
+      service: shell_command.arris_modem_signal_run_scrape
+
+
+
+# Pull in the readings from MQTT
+sensor:
+
+  # Startup Procedures
+  - platform: mqtt
+    name: "Cable Modem Acquire Downstream Channel"
+    unique_id: "modemsignals_startup_procedure_acquiredownstreamchannel"
+    state_topic: "homeassistant/sensor/modemsignals/startup_procedure/AcquireDownstreamChannel"
+    value_template: "{{ value_json.comment }}"
+    json_attributes_topic: "homeassistant/sensor/modemsignals/startup_procedure/AcquireDownstreamChannel"
+
+  - platform: mqtt
+    name: "Cable Modem Connectivity State"
+    unique_id: "modemsignals_startup_procedure_connectivitystate"
+    state_topic: "homeassistant/sensor/modemsignals/startup_procedure/ConnectivityState"
+    value_template: "{{ value_json.comment }}"
+    json_attributes_topic: "homeassistant/sensor/modemsignals/startup_procedure/ConnectivityState"
+
+  - platform: mqtt
+    name: "Cable Modem Boot State"
+    unique_id: "modemsignals_startup_procedure_bootstate"
+    state_topic: "homeassistant/sensor/modemsignals/startup_procedure/BootState"
+    value_template: "{{ value_json.comment }}"
+    json_attributes_topic: "homeassistant/sensor/modemsignals/startup_procedure/BootState"
+
