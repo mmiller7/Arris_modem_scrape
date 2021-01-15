@@ -25,6 +25,14 @@ automation:
 # Pull in the readings from MQTT
 sensor:
 
+  # Login Status
+  - platform: mqtt
+    name: "Cable Modem Web-UI Login Status"
+    force_update: true
+    unique_id: "modemsignals_webui_login_status"
+    state_topic: "homeassistant/sensor/modemsignals/login"
+    value_template: "{{ value_json.login }}"
+
   # Startup Procedures
   - platform: mqtt
     name: "Cable Modem Acquire Downstream Channel"
