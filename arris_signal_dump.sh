@@ -27,7 +27,7 @@ mqtt_pub_exe="/config/bin/mosquitto_deps/mosquitto_pub"
 function loginStatus () {
 	#echo "Modem login: $1"
 	# Publish MQTT to announce status
-	message="{ \"login\": $1 }"
+	message="{ \"login\": \"$1\" }"
 	$mqtt_pub_exe -h "$mqtt_broker" -u "$mqtt_username" -P "$mqtt_password" -t "${mqtt_topic}/login" -m "$message" || echo "MQTT-Pub Error!"
 }
 
