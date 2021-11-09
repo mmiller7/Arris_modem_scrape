@@ -27,7 +27,7 @@ mqtt_pub_exe="/config/bin/mosquitto_deps/mosquitto_pub"
 function loginStatus () {
 	#echo "Modem login: $1"
 	# Publish MQTT to announce status
-	message="{ \"login\": \"$1\" }"
+	message="{ \"login\": $1 }"
 	$mqtt_pub_exe -h "$mqtt_broker" -u "$mqtt_username" -P "$mqtt_password" -t "${mqtt_topic}/login" -m "$message" || echo "MQTT-Pub Error!"
 }
 
@@ -92,7 +92,7 @@ getToken;
 getResult;
 
 # See if we were successful
-if echo "$result" | grep -q '<title>Login</title>'; then
+if [ "$(echo "$result" | grep -c '<title>Status</title>')" == "0" ]; then
 	loginStatus "failed_retrying"
 
 	# If we failed (got a login prompt) try once more for new token
@@ -102,7 +102,7 @@ if echo "$result" | grep -q '<title>Login</title>'; then
 fi
 
 # See if we were successful
-if echo "$result" | grep -q '<title>Login</title>'; then
+if [ "$(echo "$result" | grep -c '<title>Status</title>')" == "0" ]; then
 	# At this point, if we weren't successful, we give up
 	loginStatus "failed"
 	exit 21
@@ -216,3 +216,4 @@ echo "$upstream_rows" | tail -n +2 | while read -r line; do
 done
 
 #echo ""
+
