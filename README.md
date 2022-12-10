@@ -14,4 +14,5 @@ If you want to use this on an older firmware that does not have authenticatiton,
 Files:
 arris_modem_signal_dump.sh - the script which logs into tthe modem and scrapes/parses the data publishing JSON to MQTT
 arris_modem_signgal.yaml - initial YAML to run the script periodically and import the startup status
-sensor_gen.sh - allows you to quickly bulk-generate the YAML for sensors to import results for lots of channels (my modem has 33 downstream and 4 upstream).
+
+NOTE: You probably need to adjust the YAML to match the number up/down stream channels your ISP has.  Mine was 33 down, 4 up.
