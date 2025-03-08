@@ -17,7 +17,8 @@ mqtt_pub_exe="/config/bin/mosquitto_deps/mosquitto_pub"
 # Uncomment tthis for a "normal" host that knows where mosquitto_pub is on its own
 #mqtt_pub_exe="mosquitto_pub"
 
-
+# Cookie file path
+cookie_path="$0.cookie"
 
 #####################################
 # Prep functions to interface modem #
@@ -44,8 +45,7 @@ else
 
 	# Now we need to ask the modem for a token
 	# the --insecure because it is self-signed cert
-	#token=$(curl -s --insecure "https://192.168.100.1/cmconnectionstatus.html?${auth_hash}")
-	token=$(curl --connect-timeout 5 -s --insecure "https://192.168.100.1/cmconnectionstatus.html?${auth_hash}" -H 'Accept: */*' -H 'Content-Type: application/x-www-form-urlencoded; charset=utf-8' -H "Authorization: Basic ${auth_hash}" -H 'X-Requested-With: XMLHttpRequest' -H 'Cookie: HttpOnly: true, Secure: true')
+	token=$(curl --connect-timeout 5 -s --insecure "https://${modem_ip}/cmconnectionstatus.html?login_${auth_hash}" -b "$cookie_path" -c "$cookie_path" -H 'Accept: */*' -H 'Content-Type: application/x-www-form-urlencoded; charset=utf-8' -H "Authorization: Basic ${auth_hash}" -H 'X-Requested-With: XMLHttpRequest' -H 'Cookie: HttpOnly: true, Secure: true')
 
 	if [ "$?" == 28 ]; then 
 		loginStatus "failed_timeout_no_token"
@@ -76,7 +76,7 @@ fi
 # This function fetches the HTML status page from the modem for parsing
 function getResult () {
 # Finally, we can request the page
-result=$(curl -s --insecure "https://192.168.100.1/cmconnectionstatus.html" -H "Cookie: HttpOnly: true, Secure: true; credential=${token}")
+result=$(curl -s --insecure "https://${modem_ip}/cmconnectionstatus.html?ct_$token" -b "$cookie_path" -c "$cookie_path" -H "Cookie: HttpOnly: true, Secure: true")
 }
 
 
@@ -108,6 +108,8 @@ if [ "$(echo "$result" | grep -c '<title>Status</title>')" == "0" ]; then
 	exit 21
 else
 	loginStatus "success"
+	mkdir -p "$0.log" 
+	echo "$result" > "$0.log/$(date '+%H%M').html"
 fi
 
 

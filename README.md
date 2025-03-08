@@ -1,4 +1,8 @@
-This has been tested on my Arris SB8200 firmware AB01.01.009.51_080720_183.0A.NSH
+This has been tested on my Arris SB8200 firmware AB01.02.053.06_102121_193.0A.NSH
+
+NOTE: The methods of authentication seem to vary by model, firmware number, and possibly other factors.  Unfortuniately I haven't found a good way to figure out how to debug this...I've got lucky and been able to use a mix of the browser developer console and google-searches finding other people who already solved some of the problems in other languages by searching some of the javascript URLs in the modem form.
+
+
 
 Been wanting to scrape my Arris SB8200 modem signals for monitoring over time, new firmware requires a login to access the signals.  Finally that was annoying enough I had to figure out how to automate it a bit - but first had to figure out how the login auth works.
 

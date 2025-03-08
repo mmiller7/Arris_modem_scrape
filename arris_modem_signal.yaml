@@ -792,6 +792,28 @@ mqtt:
       unit_of_measurement: 'Uncorrectable Errors'
       value_template: "{{ value_json.Uncorrectable }}"
 
+    - name: "Cable Modem Downstream 34 Power"
+      expire_after: 200
+      state_topic: "homeassistant/sensor/modemsignals/downstream/34"
+      unit_of_measurement: 'dBmV'
+      value_template: "{{ value_json.Power }}"
+      json_attributes_topic: "homeassistant/sensor/modemsignals/downstream/34"
+    - name: "Cable Modem Downstream 34 SNR"
+      expire_after: 200
+      state_topic: "homeassistant/sensor/modemsignals/downstream/34"
+      unit_of_measurement: 'dB'
+      value_template: "{{ value_json.SNR_MER }}"
+    - name: "Cable Modem Downstream 34 Corrected"
+      expire_after: 200
+      state_topic: "homeassistant/sensor/modemsignals/downstream/34"
+      unit_of_measurement: 'Corrected Errors'
+      value_template: "{{ value_json.Corrected }}"
+    - name: "Cable Modem Downstream  34 Uncorrectable"
+      expire_after: 200
+      state_topic: "homeassistant/sensor/modemsignals/downstream/34"
+      unit_of_measurement: 'Uncorrectable Errors'
+      value_template: "{{ value_json.Uncorrectable }}"
+
 
 
     ###########
@@ -826,6 +848,20 @@ mqtt:
       unit_of_measurement: 'dBmV'
       value_template: "{{ value_json.Power }}"
       json_attributes_topic: "homeassistant/sensor/modemsignals/upstream/4"
+
+    - name: "Cable Modem Upstream 5 Power"
+      unique_id: "cable_modem_upstream_5_power"
+      state_topic: "homeassistant/sensor/modemsignals/upstream/5"
+      unit_of_measurement: 'dBmV'
+      value_template: "{{ value_json.Power }}"
+      json_attributes_topic: "homeassistant/sensor/modemsignals/upstream/5"
+
+    - name: "Cable Modem Upstream 6 Power"
+      unique_id: "cable_modem_upstream_6_power"
+      state_topic: "homeassistant/sensor/modemsignals/upstream/6"
+      unit_of_measurement: 'dBmV'
+      value_template: "{{ value_json.Power }}"
+      json_attributes_topic: "homeassistant/sensor/modemsignals/upstream/6"
 
 
 
@@ -873,6 +909,7 @@ sensor:
       - sensor.cable_modem_downstream_31_power
       - sensor.cable_modem_downstream_32_power
       - sensor.cable_modem_downstream_33_power
+      - sensor.cable_modem_downstream_34_power
   - name: "Cable Modem Downstream Avg SNR"
     platform: min_max
     type: mean
@@ -910,6 +947,7 @@ sensor:
       - sensor.cable_modem_downstream_31_snr
       - sensor.cable_modem_downstream_32_snr
       - sensor.cable_modem_downstream_33_snr
+      - sensor.cable_modem_downstream_34_snr
   - name: "Cable Modem Downstream Avg Corrected"
     platform: min_max
     type: mean
@@ -947,6 +985,7 @@ sensor:
       - sensor.cable_modem_downstream_31_corrected
       - sensor.cable_modem_downstream_32_corrected
       - sensor.cable_modem_downstream_33_corrected
+      - sensor.cable_modem_downstream_34_corrected
   - name: "Cable Modem Downstream Avg Uncorrectable"
     platform: min_max
     type: mean
@@ -984,6 +1023,7 @@ sensor:
       - sensor.cable_modem_downstream_31_uncorrectable
       - sensor.cable_modem_downstream_32_uncorrectable
       - sensor.cable_modem_downstream_33_uncorrectable
+      - sensor.cable_modem_downstream_34_uncorrectable
 
   # Minimums
   - name: "Cable Modem Downstream Min Power"
@@ -1023,6 +1063,7 @@ sensor:
       - sensor.cable_modem_downstream_31_power
       - sensor.cable_modem_downstream_32_power
       - sensor.cable_modem_downstream_33_power
+      - sensor.cable_modem_downstream_34_power
   - name: "Cable Modem Downstream Min SNR"
     platform: min_max
     type: min
@@ -1060,6 +1101,7 @@ sensor:
       - sensor.cable_modem_downstream_31_snr
       - sensor.cable_modem_downstream_32_snr
       - sensor.cable_modem_downstream_33_snr
+      - sensor.cable_modem_downstream_34_snr
   - name: "Cable Modem Downstream Min Corrected"
     platform: min_max
     type: min
@@ -1097,6 +1139,7 @@ sensor:
       - sensor.cable_modem_downstream_31_corrected
       - sensor.cable_modem_downstream_32_corrected
       - sensor.cable_modem_downstream_33_corrected
+      - sensor.cable_modem_downstream_34_corrected
   - name: "Cable Modem Downstream Min Uncorrectable"
     platform: min_max
     type: min
@@ -1134,6 +1177,7 @@ sensor:
       - sensor.cable_modem_downstream_31_uncorrectable
       - sensor.cable_modem_downstream_32_uncorrectable
       - sensor.cable_modem_downstream_33_uncorrectable
+      - sensor.cable_modem_downstream_34_uncorrectable
 
   # Maximums
   - name: "Cable Modem Downstream Max Power"
@@ -1173,6 +1217,7 @@ sensor:
       - sensor.cable_modem_downstream_31_power
       - sensor.cable_modem_downstream_32_power
       - sensor.cable_modem_downstream_33_power
+      - sensor.cable_modem_downstream_34_power
   - name: "Cable Modem Downstream Max SNR"
     platform: min_max
     type: max
@@ -1210,6 +1255,7 @@ sensor:
       - sensor.cable_modem_downstream_31_snr
       - sensor.cable_modem_downstream_32_snr
       - sensor.cable_modem_downstream_33_snr
+      - sensor.cable_modem_downstream_34_snr
   - name: "Cable Modem Downstream Max Corrected"
     platform: min_max
     type: max
@@ -1247,6 +1293,7 @@ sensor:
       - sensor.cable_modem_downstream_31_corrected
       - sensor.cable_modem_downstream_32_corrected
       - sensor.cable_modem_downstream_33_corrected
+      - sensor.cable_modem_downstream_34_corrected
   - name: "Cable Modem Downstream Max Uncorrectable"
     platform: min_max
     type: max
@@ -1284,6 +1331,7 @@ sensor:
       - sensor.cable_modem_downstream_31_uncorrectable
       - sensor.cable_modem_downstream_32_uncorrectable
       - sensor.cable_modem_downstream_33_uncorrectable
+      - sensor.cable_modem_downstream_34_uncorrectable
 
 
 
@@ -1300,6 +1348,8 @@ sensor:
       - sensor.cable_modem_upstream_2_power
       - sensor.cable_modem_upstream_3_power
       - sensor.cable_modem_upstream_4_power
+      - sensor.cable_modem_upstream_5_power
+      - sensor.cable_modem_upstream_6_power
 
   # Minimums
   - name: "Cable Modem Upstream Min Power"
@@ -1310,6 +1360,8 @@ sensor:
       - sensor.cable_modem_upstream_2_power
       - sensor.cable_modem_upstream_3_power
       - sensor.cable_modem_upstream_4_power
+      - sensor.cable_modem_upstream_5_power
+      - sensor.cable_modem_upstream_6_power
 
   # Maximums
   - name: "Cable Modem Upstream Max Power"
@@ -1320,4 +1372,6 @@ sensor:
       - sensor.cable_modem_upstream_2_power
       - sensor.cable_modem_upstream_3_power
       - sensor.cable_modem_upstream_4_power
+      - sensor.cable_modem_upstream_5_power
+      - sensor.cable_modem_upstream_6_power
 
