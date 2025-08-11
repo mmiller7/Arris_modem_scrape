@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Default mqtt_password is last 8 digits of serial number
+modem_ip="192.168.100.1"
 modem_username="admin"
 modem_password="12345678"
 
@@ -14,7 +15,7 @@ mqtt_topic="homeassistant/sensor/modemsignals"
 # Comment these out for a "normal" host that knows where mosquitto_pub is on its own
 export LD_LIBRARY_PATH='/config/bin/mosquitto_deps/lib'
 mqtt_pub_exe="/config/bin/mosquitto_deps/mosquitto_pub"
-# Uncomment tthis for a "normal" host that knows where mosquitto_pub is on its own
+# Uncomment this for a "normal" host that knows where mosquitto_pub is on its own
 #mqtt_pub_exe="mosquitto_pub"
 
 # Cookie file path
