@@ -1,4 +1,4 @@
-This has been tested on my Arris SB8200 firmware AB01.02.053.06_102121_193.0A.NSH
+The SB8200 script been tested on my Arris SB8200 firmware AB01.02.053.06_102121_193.0A.NSH
 
 NOTE: The methods of authentication seem to vary by model, firmware number, and possibly other factors.  Unfortuniately I haven't found a good way to figure out how to debug this...I've got lucky and been able to use a mix of the browser developer console and google-searches finding other people who already solved some of the problems in other languages by searching some of the javascript URLs in the modem form.
 
@@ -16,7 +16,7 @@ If you want to use this on an older firmware that does not have authenticatiton,
 
 
 Files:
-arris_modem_signal_dump.sh - the script which logs into tthe modem and scrapes/parses the data publishing JSON to MQTT
+arris_modem_signal_dump_sb8200.sh - the script which logs into the modem and scrapes/parses the data publishing JSON to MQTT
 arris_modem_signgal.yaml - initial YAML to run the script periodically and import the startup status
 
 NOTE: You probably need to adjust the YAML to match the number up/down stream channels your ISP has.  Mine was 33 down, 4 up.
